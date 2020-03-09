@@ -7,6 +7,7 @@ import tf
 from sensor_msgs.msg import JointState
 import copy
 import utils
+import json
 
 class Chunker:
     def __init__(self, object_frame, gripper_frame):
@@ -61,6 +62,13 @@ if __name__=='__main__':
     gripper_frame = '/r_gripper_tool_frame'
     C = Chunker(object_frame, gripper_frame)
     C.run()
+
+    print("filename?")
+    filename = raw_input() + ".traj"
+    with open(filename, 'wb') as f:
+        json.dump(C.data, f)
+
+
 
 
 
