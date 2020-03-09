@@ -10,11 +10,10 @@ import utils
 import json
 
 class Chunker:
-    def __init__(self, object_frame, gripper_frame):
+    def __init__(self, object_frame):
         self.angle_vector = None
         self.object_frame = object_frame
-        self.gripper_frame = gripper_frame
-        self.data = {'tfs': [], 'avs': []}
+        self.data = {'tfs_r': [], 'tfs_l': [], 'avs': []}
 
         self.listener = tf.TransformListener()
         self.sub = rospy.Subscriber('/joint_states', JointState, self._callback_joint_states)
@@ -41,9 +40,11 @@ class Chunker:
         
         while True:
             try:
-                tf_relative = self.listener.lookupTransform(
-                        self.object_frame, self.gripper_frame, rospy.Time(0))
-                self.data['tfs'].append(tf_relative)
+                tf_r, tf_l = [self.listener.lookupTransform(
+                    self.object_frame, frame, rospy.Time(0)) 
+                    for frame in ['r_gripper_tool_frame', 'l_gripper_tool_frame']]
+                self.data['tfs_r'].append(tf_r)
+                self.data['tfs_l'].append(tf_l)
                 self.data['avs'].append(self.angle_vector)
                 return True
 
@@ -59,8 +60,7 @@ if __name__=='__main__':
     test = True
     rospy.init_node('teach')
     object_frame = '/l_gripper_tool_frame' if test else 'object'
-    gripper_frame = '/r_gripper_tool_frame'
-    C = Chunker(object_frame, gripper_frame)
+    C = Chunker(object_frame)
     C.run()
 
     print("filename?")
