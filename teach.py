@@ -13,7 +13,7 @@ class Chunker:
     def __init__(self, object_frame):
         self.angle_vector = None
         self.object_frame = object_frame
-        self.data = {'tfs_r': [], 'tfs_l': [], 'avs': []}
+        self.data = {'tfs_r': [], 'tfs_l': [], 'avs': [], 'n': 0}
 
         self.listener = tf.TransformListener()
         self.sub = rospy.Subscriber('/joint_states', JointState, self._callback_joint_states)
@@ -46,6 +46,7 @@ class Chunker:
                 self.data['tfs_r'].append(tf_r)
                 self.data['tfs_l'].append(tf_l)
                 self.data['avs'].append(self.angle_vector)
+                self.data['n'] += 1
                 return True
 
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
@@ -59,14 +60,17 @@ class Chunker:
 if __name__=='__main__':
     test = True
     rospy.init_node('teach')
-    object_frame = '/l_gripper_tool_frame' if test else 'object'
+    object_frame = '/base_link' if test else 'object'
     C = Chunker(object_frame)
     C.run()
+
+    data = C.data
+    data['wrt'] = object_frame
 
     print("filename?")
     filename = raw_input() + ".traj"
     with open(filename, 'wb') as f:
-        json.dump(C.data, f)
+        json.dump(C.data, f, ensure_ascii=False)
 
 
 
