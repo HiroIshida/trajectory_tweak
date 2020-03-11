@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>trajectory_tweak</name>
+  <name>trajectory</name>
   <version>0.0.0</version>
-  <description>The trajectory_tweak package</description>
+  <description>The trajectory package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
