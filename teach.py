@@ -60,7 +60,8 @@ class Chunker:
 if __name__=='__main__':
     test = True
     rospy.init_node('teach')
-    object_frame = '/base_link' if test else 'object'
+    #object_frame = '/base_link' if test else 'object'
+    object_frame = 'handle'
     C = Chunker(object_frame)
     C.run()
 
