@@ -36,6 +36,7 @@ def qv_mult(q1, v1_):
     )[:3]
     return v_converted * length
 
+
 def convert(tf_12, tf_23):
     tran_12, rot_12 = [np.array(e) for e in tf_12]
     tran_23, rot_23 = [np.array(e) for e in tf_23]
@@ -54,6 +55,9 @@ def invert_tf(tf_inp):
         rot_[i] *= -1
     rot_ = normalize(rot_)
     trans_ = qv_mult(rot_, [-e for e in trans])
+
+    if np.isnan(trans_[0]):
+        trans_ = [0, 0, 0]
     return [trans_, rot_]
 
 if __name__=='__main__':
