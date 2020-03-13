@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import tf
+from tf.transformations import *
 
 
 def pr2_joint_names():
@@ -42,7 +43,7 @@ def convert(tf_12, tf_23):
     tran_23, rot_23 = [np.array(e) for e in tf_23]
 
     rot_13 = tf.transformations.quaternion_multiply(rot_12, rot_23)
-    tran_13 = tran_12 + qv_mult(rot_12, tran_23)
+    tran_13 = tran_23 + qv_mult(rot_23, tran_12)
     return list(tran_13), list(rot_13)
 
 def normalize(vec):
@@ -61,10 +62,18 @@ def invert_tf(tf_inp):
     return [trans_, rot_]
 
 if __name__=='__main__':
-    trans = [0.0513, 0, 0.025]
-    rot = [-0.5, 0.4999999999, -0.5, 0.5]
-    tf0 = [trans, rot]
-    tf1 = invert_tf(tf0)
-    tf2 = convert(tf0, tf1)
+    import rospy
+    import time
+    rospy.init_node('debug')
+    listener = tf.TransformListener()
+
+    q = quaternion_from_euler(-math.pi/2, 0, 0)
+    qv_mult(q, np.array([0, 0, 1]))
+
+    time.sleep(1)
+    T_B2I = listener.lookupTransform('/base_footprint', '/handle', rospy.Time(0))
+    T_G2B = listener.lookupTransform('/handle', 'r_gripper_tool_frame', rospy.Time(0))
+    T_G2I = listener.lookupTransform('/base_footprint', 'r_gripper_tool_frame', rospy.Time(0))
+    T = convert(T_G2B, T_B2I)
 
 
