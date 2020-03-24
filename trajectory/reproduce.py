@@ -54,11 +54,13 @@ class Reproducer:
         print("asked")
         print(req.message)
         dict_req = json.loads(str(req.message))
-        print(dict_req['param'])
 
         trajectory_file = dict_req['name'] + ".traj"
         with open(trajectory_file, 'r') as f:
             data = json.load(f)
+        print(trajectory_file)
+
+
 
         time.sleep(1)
         obj_frame= str(data['wrt'])

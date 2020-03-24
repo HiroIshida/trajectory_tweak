@@ -21,19 +21,23 @@
 
   (setq msg (ros::service-call "get_tweak" (instance oven::JsonStringRequest :init)))
 
-(setq *req-json* "{\"name\": \"test\", \"param\": [0,0,0,0,0,0,0,0,0,0,0,0]}")
-;(setq *req-json* "{\"name\": \"test\"}")
-(setq *json* (request_json "get_tweak" *req-json*))
+(setq *req-json-open* "{\"name\": \"open\", \"param\": [0,0,0,0,0,0,0,0,0,0,0,0]}")
+(setq *req-json-close* "{\"name\": \"close\"}")
+
+(setq *json-open* (request_json "get_tweak" *req-json-open*))
+(setq *json-close* (request_json "get_tweak" *req-json-close*))
 
 (defun follow-json (json)
-  (let ((av-seq (cdr (assoc :av_seq *json*)))
-        (T-rt-seq (cdr (assoc :T_rt_seq *json*))))
+  (let ((av-seq (cdr (assoc :av_seq json)))
+        (T-rt-seq (cdr (assoc :T_rt_seq json))))
     (dolist (pair (zip av-seq T-rt-seq))
       (solve-ik (car pair) (cdr pair))
       (send *ri* :angle-vector (send *pr2* :angle-vector) 1500)
       (unix:sleep 1))))
 
-(follow-json *json*)
+(follow-json *json-open*)
+(unix:sleep 1)
+(follow-json *json-close*)
 
 
 
