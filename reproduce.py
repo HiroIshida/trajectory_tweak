@@ -33,7 +33,7 @@ class Reproducer:
 
         time.sleep(1)
         obj_frame= str(data['wrt'])
-        T_B_to_I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
+        T_B2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
 
         try:
             print("tweak!")
@@ -43,13 +43,14 @@ class Reproducer:
             param = [0 for i in range(100)]
 
         #T_Gtweaked_to_B_seq = tweak.full_tweak_rule(data['tfs_r'], param)
-        T_Gtweaked_to_B_seq = self.tweak_rule(data['tfs_r'], param)
-        T_Gtweaked_to_I_seq = [
-                utils.convert(T_Gt_to_B, T_B_to_I) for 
-                T_Gt_to_B in T_Gtweaked_to_B_seq]
+        T_Gt2B_seq = self.tweak_rule(data['tfs_r'], param)
+        #T_Gtweaked_to_B_seq = self.tweak_rule(data['tfs_r'], param)
+        T_Gt2I_seq = [
+                utils.convert(T_Gt2B, T_B2I) for 
+                T_Gt2B in T_Gt2B_seq]
 
         data_res = {
-                'T_rt_seq': T_Gtweaked_to_I_seq, 
+                'T_rt_seq': T_Gt2I_seq, 
                 'av_seq': data['avs']
                 }
         return JsonStringResponse(message=json.dumps(data_res))
