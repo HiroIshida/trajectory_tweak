@@ -9,11 +9,40 @@ import rospy
 from oven.srv import *
 import time
 import copy
-#import tweak
 
+eps = 1e-5
+T_identity = [[eps, eps, eps], [eps, eps, eps, 1.0]]
 
-def no_tweak_rule(T_G2B_seq, param):
-    return T_G2B_seq
+def tweak(T_tool_to_obj_seq, T_tweak_seq):
+    n = len(T_tweak_seq)
+    assert len(T_tool_to_obj_seq) == n
+
+    T_Gtweaked_to_B_seq = []
+
+    T_cached = T_identity
+    for i in range(n):
+        if i == 0:
+            T_G_to_pre = T_tool_to_obj_seq[i]
+        else:
+            T_G_to_obj = T_tool_to_obj_seq[i]
+            T_pre_to_obj = T_tool_to_obj_seq[i-1]
+            T_obj_to_pre = utils.invert_tf(T_pre_to_obj)
+
+            T_G_to_pre = utils.convert(
+                    T_G_to_obj,
+                    T_obj_to_pre)
+
+        T_tweak = T_tweak_seq[i]
+        T_Gtweaked_to_G = utils.convert(T_tweak, T_G_to_pre)
+        T_Gtweaked_to_B = utils.convert(T_Gtweaked_to_G, T_cached)
+        T_Gtweaked_to_B_seq.append(T_Gtweaked_to_B)
+        T_cached = copy.copy(T_Gtweaked_to_B)
+
+    return T_Gtweaked_to_B_seq
+
+def no_tweak_rule(param, n):
+    T_tweak_seq = [T_identity for i in range(n)]
+    return T_tweak_seq
 
 class Reproducer:
     def __init__(self, tweak_rule = no_tweak_rule):
@@ -42,9 +71,10 @@ class Reproducer:
             print("no tweak...")
             param = [0 for i in range(100)]
 
-        #T_Gtweaked_to_B_seq = tweak.full_tweak_rule(data['tfs_r'], param)
-        T_Gt2B_seq = self.tweak_rule(data['tfs_r'], param)
-        #T_Gtweaked_to_B_seq = self.tweak_rule(data['tfs_r'], param)
+        T_G2B_seq  = data['tfs_r']
+        n = len(T_G2B_seq)
+        T_tweak_seq = self.tweak_rule(param, n)
+        T_Gt2B_seq = tweak(T_G2B_seq, T_tweak_seq)
         T_Gt2I_seq = [
                 utils.convert(T_Gt2B, T_B2I) for 
                 T_Gt2B in T_Gt2B_seq]
