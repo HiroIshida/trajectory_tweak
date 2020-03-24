@@ -11,44 +11,46 @@ import time
 import copy
 import tweak
 
-rospy.init_node('commander_test')
-listener = tf.TransformListener()
+class Reproducer:
+    def __init__(self):
+        self.srv = rospy.Service('get_tweak', JsonString, self._handle_tweak)
+        self.listener = tf.TransformListener()
 
-def handle_tweak(req):
-    print("asked")
-    dict_req = json.loads(str(req.message))
+    def _handle_tweak(self, req):
+        print("asked")
+        print(req.message)
+        dict_req = json.loads(str(req.message))
+        print(dict_req['param'])
 
-    trajectory_file = dict_req['name'] + ".traj"
-    with open(trajectory_file, 'r') as f:
-        data = json.load(f)
+        trajectory_file = dict_req['name'] + ".traj"
+        with open(trajectory_file, 'r') as f:
+            data = json.load(f)
 
-    time.sleep(1)
-    obj_frame= str(data['wrt'])
-    T_B_to_I = listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
+        time.sleep(1)
+        obj_frame= str(data['wrt'])
+        T_B_to_I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
 
-    '''
-    try:
-        print("tweak!")
-        param = dict_req['param'] 
-    except KeyError:
-        print("no tweak...")
-        param = [0 for i in range(100)]
-    '''
-    param = [0 for i in range(100)]
+        try:
+            print("tweak!")
+            param = dict_req['param'] 
+        except KeyError:
+            print("no tweak...")
+            param = [0 for i in range(100)]
 
-    #T_Gtweaked_to_B_seq = tweak.full_tweak_rule(data['tfs_r'], param)
-    T_Gtweaked_to_B_seq = tweak.no_tweak_rule(data['tfs_r'], param)
-    T_Gtweaked_to_I_seq = [
-            utils.convert(T_Gt_to_B, T_B_to_I) for 
-            T_Gt_to_B in T_Gtweaked_to_B_seq]
+        #T_Gtweaked_to_B_seq = tweak.full_tweak_rule(data['tfs_r'], param)
+        T_Gtweaked_to_B_seq = tweak.no_tweak_rule(data['tfs_r'], param)
+        T_Gtweaked_to_I_seq = [
+                utils.convert(T_Gt_to_B, T_B_to_I) for 
+                T_Gt_to_B in T_Gtweaked_to_B_seq]
 
-    data_res = {
-            'T_rt_seq': T_Gtweaked_to_I_seq, 
-            'av_seq': data['avs']
-            }
-    return JsonStringResponse(message=json.dumps(data_res))
+        data_res = {
+                'T_rt_seq': T_Gtweaked_to_I_seq, 
+                'av_seq': data['avs']
+                }
+        return JsonStringResponse(message=json.dumps(data_res))
 
 
+'''
 def make_pose_msg(pose):
     trans = pose[0]
     rot = pose[1]
@@ -82,11 +84,13 @@ def pub_trajectory():
         pose_msg.header = header
         pub.publish(pose_msg)
     sub = rospy.Subscriber('/joint_states', JointState, cb)
+'''
 
 #rospy.spin()
 #srv_get_tweak.shutdown()
 if __name__ == '__main__':
-    rospy.Service('get_tweak', JsonString, handle_tweak)
+    rospy.init_node('commander_test')
+    rp = Reproducer()
     rospy.spin()
 
 
