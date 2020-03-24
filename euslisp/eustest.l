@@ -30,8 +30,8 @@
         (T-rt-seq (cdr (assoc :T_rt_seq *json*))))
     (dolist (pair (zip av-seq T-rt-seq))
       (solve-ik (car pair) (cdr pair))
-      (send *ri* :angle-vector (send *pr2* :angle-vector))
-      (unix:usleep (round (* 0.5 1000 2000))))))
+      (send *ri* :angle-vector (send *pr2* :angle-vector) 1500)
+      (unix:sleep 1))))
 
 (follow-json *json*)
 
