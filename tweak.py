@@ -2,7 +2,8 @@ import utils
 import tf
 import copy
 
-T_identity = [[1e-10, 1e-10, 1e-10], [1e-10, 1e-10, 1e-10, 1.0]]
+eps = 1e-5
+T_identity = [[eps, eps, eps], [eps, eps, eps, 1.0]]
 
 def tweak(T_tool_to_obj_seq, T_tweak_seq):
     n = len(T_tweak_seq)
@@ -43,8 +44,24 @@ def simple_tweak_rule(T_tool_to_obj_seq, param):
     n = len(T_tool_to_obj_seq)
     #T_Gtweaked_to_B_seq = tweak(T_tool_to_obj_seq, [T_identity for i in range(n)])
     Q_rolled = lambda angle: tf.transformations.quaternion_from_euler(0, angle, 0)
-    T_tweaks = [[[0.0, 0, 0], Q_rolled(param)]]
+    T_tweaks = [[[param, 0, 0.0000], Q_rolled(0.0001)]]
     for i in range(n-1):
         T_tweaks.append(T_identity)
     T_Gtweaked_to_B_seq = tweak(T_tool_to_obj_seq, T_tweaks)
     return T_Gtweaked_to_B_seq
+
+def full_tweak_rule(T_tool_to_obj_seq, param):
+    n = len(T_tool_to_obj_seq)
+    T_tweaks = [T_identity]
+
+    Q_rolled = lambda angle: tf.transformations.quaternion_from_euler(0, angle, 0)
+
+    # tweak except initial waypoint
+    for i in range(n-1):
+        trans = [param[3*i+0], param[3*i+1], eps]
+        rot = Q_rolled(param[3*i+2])
+        T_tweak = [trans, rot]
+        T_tweaks.append(T_tweak)
+    T_G2B_seq = tweak(T_tool_to_obj_seq, T_tweaks)
+    return T_G2B_seq
+
