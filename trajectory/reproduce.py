@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import utils
+from . import utils
 from tf2_msgs.msg import TFMessage
 from geometry_msgs.msg import PoseArray, Pose, Point, Quaternion
 from sensor_msgs.msg import JointState
