@@ -5,9 +5,19 @@ import numpy as np
 import math
 import tf
 from sensor_msgs.msg import JointState
+from std_srvs.srv import Empty
 import copy
 import utils
 import json
+
+def freeze_client():
+    try:
+        rospy.wait_for_service('freeze', timeout=1.5)
+        srvproxy = rospy.ServiceProxy('freeze', Empty)
+        srvproxy() # no arg cause Empty needs no arg
+    except rospy.ROSException:
+        print("maybe freeze service does not exist")
+
 
 class Chunker:
     def __init__(self, object_frame):
@@ -57,14 +67,13 @@ class Chunker:
             pass
         self.sub.unregister()
 
-
 if __name__=='__main__':
-    test = True
     rospy.init_node('teach')
-    object_frame = '/base_link' if test else 'object'
-    #object_frame = 'object'
+    freeze_client() # freeze
+    object_frame = 'object'
     C = Chunker(object_frame)
     C.run()
+    freeze_client() # de-freeze
 
     data = C.data
     data['wrt'] = object_frame
@@ -73,10 +82,5 @@ if __name__=='__main__':
     filename = raw_input() + ".traj"
     with open(filename, 'wb') as f:
         json.dump(C.data, f, ensure_ascii=False, indent=4)
-
-
-
-
-
 
 
