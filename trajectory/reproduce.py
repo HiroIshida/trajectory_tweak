@@ -48,7 +48,7 @@ class Reproducer:
     def __init__(self, tweak_rule = no_tweak_rule):
         self.srv = rospy.Service('get_tweak', JsonString, self._handle_tweak)
         self.listener = tf.TransformListener()
-        self.tweak_rule = no_tweak_rule
+        self.tweak_rule = tweak_rule
 
     def _handle_tweak(self, req):
         print("asked")
