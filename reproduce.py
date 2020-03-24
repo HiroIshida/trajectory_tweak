@@ -14,19 +14,30 @@ import tweak
 rospy.init_node('commander_test')
 listener = tf.TransformListener()
 
-
 def handle_tweak(req):
     print("asked")
-    with open("./test.traj", 'r') as f:
+    dict_req = json.loads(str(req.message))
+
+    trajectory_file = dict_req['name'] + ".traj"
+    with open(trajectory_file, 'r') as f:
         data = json.load(f)
 
-    obj_frame= str(data['wrt'])
-
     time.sleep(1)
+    obj_frame= str(data['wrt'])
     T_B_to_I = listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
-    T_Gtweaked_to_B_seq = tweak.no_tweak_rule(data['tfs_r'], 0.0)
-    print(T_B_to_I)
-    print(T_Gtweaked_to_B_seq)
+
+    '''
+    try:
+        print("tweak!")
+        param = dict_req['param'] 
+    except KeyError:
+        print("no tweak...")
+        param = [0 for i in range(100)]
+    '''
+    param = [0 for i in range(100)]
+
+    #T_Gtweaked_to_B_seq = tweak.full_tweak_rule(data['tfs_r'], param)
+    T_Gtweaked_to_B_seq = tweak.no_tweak_rule(data['tfs_r'], param)
     T_Gtweaked_to_I_seq = [
             utils.convert(T_Gt_to_B, T_B_to_I) for 
             T_Gt_to_B in T_Gtweaked_to_B_seq]
