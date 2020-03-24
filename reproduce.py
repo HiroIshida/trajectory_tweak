@@ -9,12 +9,17 @@ import rospy
 from oven.srv import *
 import time
 import copy
-import tweak
+#import tweak
+
+
+def no_tweak_rule(T_G2B_seq, param):
+    return T_G2B_seq
 
 class Reproducer:
-    def __init__(self):
+    def __init__(self, tweak_rule = no_tweak_rule):
         self.srv = rospy.Service('get_tweak', JsonString, self._handle_tweak)
         self.listener = tf.TransformListener()
+        self.tweak_rule = no_tweak_rule
 
     def _handle_tweak(self, req):
         print("asked")
@@ -38,7 +43,7 @@ class Reproducer:
             param = [0 for i in range(100)]
 
         #T_Gtweaked_to_B_seq = tweak.full_tweak_rule(data['tfs_r'], param)
-        T_Gtweaked_to_B_seq = tweak.no_tweak_rule(data['tfs_r'], param)
+        T_Gtweaked_to_B_seq = self.tweak_rule(data['tfs_r'], param)
         T_Gtweaked_to_I_seq = [
                 utils.convert(T_Gt_to_B, T_B_to_I) for 
                 T_Gt_to_B in T_Gtweaked_to_B_seq]
