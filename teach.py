@@ -57,11 +57,12 @@ class Chunker:
             pass
         self.sub.unregister()
 
+
 if __name__=='__main__':
     test = True
     rospy.init_node('teach')
-    #object_frame = '/base_link' if test else 'object'
-    object_frame = 'handle'
+    object_frame = '/base_link' if test else 'object'
+    #object_frame = 'object'
     C = Chunker(object_frame)
     C.run()
 
@@ -71,7 +72,7 @@ if __name__=='__main__':
     print("filename?")
     filename = raw_input() + ".traj"
     with open(filename, 'wb') as f:
-        json.dump(C.data, f, ensure_ascii=False)
+        json.dump(C.data, f, ensure_ascii=False, indent=4)
 
 
 
