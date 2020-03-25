@@ -5,7 +5,6 @@ import trajectory as traj
 rospy.init_node('commander_test')
 
 def full_tweak_rule(param, n):
-    param[0] = 0
     T_id = traj.T_identity
     T_tweaks = [T_id]
 
@@ -13,12 +12,12 @@ def full_tweak_rule(param, n):
 
     # tweak except initial waypoint
     for i in range(n-1):
-        trans = [param[3*i+0], param[3*i+1], traj.eps]
+        trans = [param[3*i+0], traj.eps, param[3*i+1]]
         rot = Q_rolled(param[3*i+2])
         T_tweak = [trans, rot]
         T_tweaks.append(T_tweak)
     print("fufaefjaoeifjoaie")
     return T_tweaks
 
-rp = traj.Reproducer()
+rp = traj.Reproducer(tweak_rule=full_tweak_rule)
 rospy.spin()
