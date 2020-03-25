@@ -69,16 +69,26 @@ class Reproducer:
 
         time.sleep(1)
         obj_frame= str(data['wrt'])
-        T_B2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
 
 
         T_G2B_seq  = data['tfs_r']
         n = len(T_G2B_seq)
         T_tweak_seq = self.tweak_rule(param, n)
         T_Gt2B_seq = tweak(T_G2B_seq, T_tweak_seq)
-        T_Gt2I_seq = [
-                utils.convert(T_Gt2B, T_B2I) for 
+        
+        # frame B above is distorted one with hypothesized error, thus we must compute T_Gt2Br
+        # where Br denotes 'real' B
+        trans_B2Br = [err[0], err[1], err[2]]
+        rot_B2Br = tf.transformations.quaternion_from_euler(err[3], err[4], err[5])
+        T_B2Br = [trans_B2Br, rot_B2Br]
+        T_Gt2Br_seq = [
+                utils.convert(T_Gt2B, T_B2Br) for
                 T_Gt2B in T_Gt2B_seq]
+
+        T_Br2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
+        T_Gt2I_seq = [
+                utils.convert(T_Gt2Br, T_Br2I) for 
+                T_Gt2Br in T_Gt2Br_seq]
 
         data_res = {
                 'T_rt_seq': T_Gt2I_seq, 

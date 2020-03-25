@@ -19,7 +19,9 @@
       (setq json (json::parse-from-string (send msg :message)))
       json))
 
-(setq *req-json-open* "{\"name\": \"open\", \"param\": [0,0,0,0,0,0,0,0,0,0,0,0]}")
+(setq *req-json-open* "{\"name\": \"open\", 
+                       \"param\": [0,0,0,0,0,0,0,0,0,0,0,0], 
+                       \"err\":[0,0,0,0,0,0]}")
 (setq *req-json-close* "{\"name\": \"close\"}")
 
 (setq *json-open* (request_json "get_tweak" *req-json-open*))
