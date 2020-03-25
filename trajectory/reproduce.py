@@ -88,7 +88,13 @@ class Reproducer:
                 utils.convert(T_Gt2B, T_B2Br) for
                 T_Gt2B in T_Gt2B_seq]
 
-        T_Br2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
+        while True:
+            try:
+                T_Br2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
+                break
+            except:
+                pass
+
 
         print(T_B2Br)
         print(T_Br2I)
