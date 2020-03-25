@@ -19,8 +19,6 @@
       (setq json (json::parse-from-string (send msg :message)))
       json))
 
-  (setq msg (ros::service-call "get_tweak" (instance oven::JsonStringRequest :init)))
-
 (setq *req-json-open* "{\"name\": \"open\", \"param\": [0,0,0,0,0,0,0,0,0,0,0,0]}")
 (setq *req-json-close* "{\"name\": \"close\"}")
 
