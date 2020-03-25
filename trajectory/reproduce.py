@@ -47,8 +47,11 @@ def no_tweak_rule(param, n):
 class Reproducer:
     def __init__(self, tweak_rule = no_tweak_rule):
         self.srv = rospy.Service('get_tweak', JsonString, self._handle_tweak)
+        self.tf_sub = rospy.Subscriber('/tf', TFMessage, self._callback_to_tf)
         self.listener = tf.TransformListener()
         self.tweak_rule = tweak_rule
+        self.T_B2I = None #hypothesized Body to Inertial (real body is denoted by Br ins.of. B)
+        self.br = tf.TransformBroadcaster()
 
     def _handle_tweak(self, req):
         print("asked")
@@ -78,7 +81,7 @@ class Reproducer:
         
         # frame B above is distorted one with hypothesized error, thus we must compute T_Gt2Br
         # where Br denotes 'real' B
-        trans_B2Br = [err[0], err[1], err[2]]
+        trans_B2Br = [err[0]+eps, err[1]+eps, err[2]+eps]
         rot_B2Br = tf.transformations.quaternion_from_euler(err[3], err[4], err[5])
         T_B2Br = [trans_B2Br, rot_B2Br]
         T_Gt2Br_seq = [
@@ -86,6 +89,12 @@ class Reproducer:
                 T_Gt2B in T_Gt2B_seq]
 
         T_Br2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
+
+        print(T_B2Br)
+        print(T_Br2I)
+        print(utils.convert(T_B2Br, T_Br2I))
+        self.T_B2I = utils.convert(T_B2Br, T_Br2I)
+
         T_Gt2I_seq = [
                 utils.convert(T_Gt2Br, T_Br2I) for 
                 T_Gt2Br in T_Gt2Br_seq]
@@ -95,6 +104,12 @@ class Reproducer:
                 'av_seq': data['avs']
                 }
         return JsonStringResponse(message=json.dumps(data_res))
+
+    def _callback_to_tf(self, msg): # this doesn't have to be callback
+        if self.T_B2I is not None:
+            trans, rot =  self.T_B2I
+            self.br.sendTransform(tuple(trans), tuple(rot), rospy.Time.now(), "hypothesized_object", "base_footprint")
+
 
 
 '''
@@ -138,7 +153,7 @@ def pub_trajectory():
 if __name__ == '__main__':
     rospy.init_node('commander_test')
     rp = Reproducer()
-    rospy.spin()
+
 
 
 
