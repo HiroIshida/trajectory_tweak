@@ -52,26 +52,25 @@ class Reproducer:
 
     def _handle_tweak(self, req):
         print("asked")
-        print(req.message)
-        dict_req = json.loads(str(req.message))
+        print(str(req.message))
+        string = str(req.message)
+        dict_req = json.loads(string)
 
+        # processing the dict
         trajectory_file = dict_req['name'] + ".traj"
         with open(trajectory_file, 'r') as f:
             data = json.load(f)
-        print(trajectory_file)
 
+        hasParam = ('param' in dict_req)
+        param = dict_req['param'] if hasParam else [0 for i in range(100)]
 
+        hasErr = ('err' in dict_req)
+        err = dict_req['err'] if hasErr else [0 for i in range(6)] # error in xyzrpy
 
         time.sleep(1)
         obj_frame= str(data['wrt'])
         T_B2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
 
-        try:
-            print("tweak!")
-            param = dict_req['param'] 
-        except KeyError:
-            print("no tweak...")
-            param = [0 for i in range(100)]
 
         T_G2B_seq  = data['tfs_r']
         n = len(T_G2B_seq)
