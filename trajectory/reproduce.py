@@ -47,7 +47,7 @@ def no_tweak_rule(param, n):
 class Reproducer:
     def __init__(self, tweak_rule = no_tweak_rule):
         self.srv = rospy.Service('get_tweak', JsonString, self._handle_tweak)
-        self.tf_sub = rospy.Subscriber('/tf', TFMessage, self._callback_to_tf)
+        #self.tf_sub = rospy.Subscriber('/tf', TFMessage, self._callback_to_tf)
         self.listener = tf.TransformListener()
         self.tweak_rule = tweak_rule
         self.T_B2I = None #hypothesized Body to Inertial (real body is denoted by Br ins.of. B)
@@ -74,7 +74,7 @@ class Reproducer:
         time.sleep(1)
         obj_frame= str(data['wrt'])
         now = rospy.Time.now()
-        self.listener.waitForTransform('/base_footprint', obj_frame, now, rospy.Duration(1.5))
+        self.listener.waitForTransform('/base_footprint', obj_frame, now, rospy.Duration(10.0))
         T_Br2I = self.listener.lookupTransform('/base_footprint', obj_frame, now)
 
 
