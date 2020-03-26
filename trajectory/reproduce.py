@@ -59,6 +59,7 @@ class Reproducer:
         string = str(req.message)
         dict_req = json.loads(string)
 
+
         # processing the dict
         trajectory_file = dict_req['name'] + ".traj"
         with open(trajectory_file, 'r') as f:
@@ -72,6 +73,9 @@ class Reproducer:
 
         time.sleep(1)
         obj_frame= str(data['wrt'])
+        now = rospy.Time.now()
+        self.listener.waitForTransform('/base_footprint', obj_frame, now, rospy.Duration(1.5))
+        T_Br2I = self.listener.lookupTransform('/base_footprint', obj_frame, now)
 
 
         T_G2B_seq  = data['tfs_r']
@@ -88,12 +92,6 @@ class Reproducer:
                 utils.convert(T_Gt2B, T_B2Br) for
                 T_Gt2B in T_Gt2B_seq]
 
-        while True:
-            try:
-                T_Br2I = self.listener.lookupTransform('/base_footprint', obj_frame, rospy.Time(0))
-                break
-            except:
-                pass
 
 
         print(T_B2Br)
