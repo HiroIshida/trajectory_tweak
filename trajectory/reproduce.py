@@ -62,11 +62,18 @@ class Reproducer:
         """ 
         ts = time.time()
         print("asked")
+        time.sleep(1) # wait until the oven stay statitic
         print(str(req.message))
         string = str(req.message)
-        dict_req = json.loads(string)
+        dict_req_seq = json.loads(string)
+        dict_res_seq = [self._process_single_trajectory(dict_req) for dict_req in dict_req_seq]
 
+        te = time.time()
+        print("time: " + str(te - ts))
+        print(dict_res_seq)
+        return JsonStringResponse(message=json.dumps(dict_res_seq))
 
+    def _process_single_trajectory(self, dict_req):
         # processing the dict
         trajectory_file = dict_req['name'] + ".traj"
         with open(trajectory_file, 'r') as f:
@@ -78,7 +85,6 @@ class Reproducer:
         hasErr = ('err' in dict_req)
         err = dict_req['err'] if hasErr else [0 for i in range(6)] # error in xyzrpy
 
-        time.sleep(1)
         obj_frame= str(data['wrt'])
         now = rospy.Time.now()
         self.listener.waitForTransform('/base_footprint', obj_frame, now, rospy.Duration(10.0))
@@ -102,13 +108,6 @@ class Reproducer:
                 utils.convert(T_Gt2B, T_B2Br) for
                 T_Gt2B in T_Gt2B_seq]
 
-        """
-        print(T_B2Br)
-        print(T_Br2I)
-        print(utils.convert(T_B2Br, T_Br2I))
-        self.T_B2I = utils.convert(T_B2Br, T_Br2I)
-        """
-
         T_Gt2I_seq = [
                 utils.convert(T_Gt2Br, T_Br2I) for 
                 T_Gt2Br in T_Gt2Br_seq]
@@ -117,9 +116,8 @@ class Reproducer:
                 'T_rt_seq': T_Gt2I_seq, 
                 'av_seq': data['avs']
                 }
-        te = time.time()
-        print("time: " + str(te - ts))
-        return JsonStringResponse(message=json.dumps(data_res))
+        return data_res
+
 
     """
     def _callback_to_tf(self, msg): # this doesn't have to be callback
