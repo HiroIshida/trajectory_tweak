@@ -70,7 +70,8 @@ class Reproducer:
 
         te = time.time()
         print("time: " + str(te - ts))
-        return JsonStringResponse(message=json.dumps(dict_req_seq))
+        print(dict_res_seq)
+        return JsonStringResponse(message=json.dumps(dict_res_seq))
 
     def _process_single_trajectory(self, dict_req):
         # processing the dict
@@ -115,7 +116,7 @@ class Reproducer:
                 'T_rt_seq': T_Gt2I_seq, 
                 'av_seq': data['avs']
                 }
-        return dict_req
+        return data_res
 
 
     """
