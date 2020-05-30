@@ -51,9 +51,16 @@ class Reproducer:
         self.listener = tf.TransformListener()
         self.tweak_rule = tweak_rule
         self.T_B2I = None #hypothesized Body to Inertial (real body is denoted by Br ins.of. B)
-        self.br = tf.TransformBroadcaster()
+        #self.br = tf.TransformBroadcaster()
 
     def _handle_tweak(self, req):
+        """
+        dict must have
+        :name (like open, close)
+        :param (list)
+        :err (list)
+        """ 
+        ts = time.time()
         print("asked")
         print(str(req.message))
         string = str(req.message)
@@ -81,7 +88,10 @@ class Reproducer:
         T_G2B_seq  = data['tfs_r']
         n = len(T_G2B_seq)
         T_tweak_seq = self.tweak_rule(param, n)
-        T_Gt2B_seq = tweak(T_G2B_seq, T_tweak_seq)
+        T_Gt2B_seq = []
+        for T_Gt2G, T_G2B in zip(T_tweak_seq, T_G2B_seq): # Gt means G tweaked
+            T_Gt2B = utils.convert(T_Gt2G, T_G2B)
+            T_Gt2B_seq.append(T_Gt2B)
         
         # frame B above is distorted one with hypothesized error, thus we must compute T_Gt2Br
         # where Br denotes 'real' B
@@ -92,12 +102,12 @@ class Reproducer:
                 utils.convert(T_Gt2B, T_B2Br) for
                 T_Gt2B in T_Gt2B_seq]
 
-
-
+        """
         print(T_B2Br)
         print(T_Br2I)
         print(utils.convert(T_B2Br, T_Br2I))
         self.T_B2I = utils.convert(T_B2Br, T_Br2I)
+        """
 
         T_Gt2I_seq = [
                 utils.convert(T_Gt2Br, T_Br2I) for 
@@ -107,12 +117,16 @@ class Reproducer:
                 'T_rt_seq': T_Gt2I_seq, 
                 'av_seq': data['avs']
                 }
+        te = time.time()
+        print("time: " + str(te - ts))
         return JsonStringResponse(message=json.dumps(data_res))
 
+    """
     def _callback_to_tf(self, msg): # this doesn't have to be callback
         if self.T_B2I is not None:
             trans, rot =  self.T_B2I
             self.br.sendTransform(tuple(trans), tuple(rot), rospy.Time.now(), "hypothesized_object", "base_footprint")
+            """
 
 
 
